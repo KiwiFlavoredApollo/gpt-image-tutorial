@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: gpt-image-tutorial
+
+openai:
+  api-key: ${OPENAI_API_KEY}
