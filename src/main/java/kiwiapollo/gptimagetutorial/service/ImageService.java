@@ -56,8 +56,8 @@ public class ImageService {
                     .image(MultipartField.<ImageEditParams.Image>builder()
                             .value(ImageEditParams.Image.ofInputStreams(
                                     List.of(person, clothing)))
-                            .filename("image.jpg")
-                            .contentType("application/octet-stream")
+                            .filename("image.png")
+                            .contentType("image/png")
                             .build())
                     .build();
 
