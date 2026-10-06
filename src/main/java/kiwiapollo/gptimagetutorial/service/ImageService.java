@@ -1,6 +1,7 @@
 package kiwiapollo.gptimagetutorial.service;
 
 import com.openai.client.OpenAIClient;
+import com.openai.core.MultipartField;
 import com.openai.models.images.ImageEditParams;
 import com.openai.models.images.ImagesResponse;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Base64;
+import java.util.List;
 
 @Service
 public class ImageService {
@@ -45,32 +47,26 @@ public class ImageService {
                 Preserve the original lighting and image composition.
                 """;
 
-        ImageEditParams params = ImageEditParams.builder()
-                .model("gpt-image-2.5-sunburst")
-                .prompt(prompt)
-                .image(
-                        toImagePart(
-                                personImage
-                        )
-                )
-                .image(
-                        toImagePart(
-                                clothingImage
-                        )
-                )
-                .build();
+        try (InputStream person = personImage.getInputStream();
+             InputStream clothing = clothingImage.getInputStream()) {
 
-        ImagesResponse response =
-                openAIClient.images().edit(params);
+            ImageEditParams params = ImageEditParams.builder()
+                    .model("gpt-image-2.5-sunburst")
+                    .prompt(prompt)
+                    .image(MultipartField.<ImageEditParams.Image>builder()
+                            .value(ImageEditParams.Image.ofInputStreams(
+                                    List.of(person, clothing)))
+                            .filename("image.jpg")
+                            .contentType("application/octet-stream")
+                            .build())
+                    .build();
 
-        String base64Image = response
-                .data()
-                .get()
-                .get(0)
-                .b64Json()
-                .get();
+            ImagesResponse response = openAIClient.images().edit(params);
 
-        return Base64.getDecoder().decode(base64Image);
+            return Base64.getDecoder().decode(
+                    response.data().orElseThrow()
+                            .get(0).b64Json().orElseThrow());
+        }
     }
 
     private ImageEditParams.Image toImagePart(
