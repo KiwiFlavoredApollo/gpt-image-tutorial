@@ -1,6 +1,8 @@
 spring:
   application:
     name: gpt-image-tutorial
+  config:
+    import: "optional:file:./.env[.properties]"
 
 openai:
   api-key: ${OPENAI_API_KEY}
